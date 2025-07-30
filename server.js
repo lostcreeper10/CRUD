@@ -6,12 +6,10 @@ let profile = require("./profiles.json");
 
 app.use(express.json());
 
-// READ all profiles
 app.get("/api/get-profiles", (req, res) => {
   res.json(profile);
 });
 
-// CREATE a new profile
 app.post("/api/profile", (req, res) => {
   const { name, email } = req.body;
   const newUser = { id: Date.now(), name, email };
@@ -22,7 +20,6 @@ app.post("/api/profile", (req, res) => {
   });
 });
 
-// UPDATE a profile by ID
 app.put("/api/profile/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const { name, email } = req.body;
@@ -38,7 +35,6 @@ app.put("/api/profile/:id", (req, res) => {
   }
 });
 
-// DELETE a profile by ID
 app.delete("/api/profile/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const index = profile.findIndex((user) => user.id === id);
@@ -53,7 +49,6 @@ app.delete("/api/profile/:id", (req, res) => {
   }
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
