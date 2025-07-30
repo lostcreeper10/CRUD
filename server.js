@@ -1,59 +1,59 @@
 const express = require("express");
-const fs = require("fs");
 const app = express();
 const PORT = 5000;
 
-app.use(express.json());
-
 let profile = require("./profiles.json");
 
-let nextId = profile.length > 0 ? Math.max(...profile.map(u => u.id || 0)) + 1 : 1;
+app.use(express.json());
 
-app.get("/api/get-profile", (req, res) => {
+// READ all profiles
+app.get("/api/get-profiles", (req, res) => {
   res.json(profile);
 });
 
-app.get("/api/get-profile/:id", (req, res) => {
-  const { id } = req.params;
-  const user = profile.find(u => u.id === parseInt(id));
-  if (!user) return res.status(404).json({ message: "User not found" });
-  res.json(user);
-});
-
-app.post("/api/add-profile", (req, res) => {
+// CREATE a new profile
+app.post("/api/profile", (req, res) => {
   const { name, email } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ message: "Name and email are required" });
-  }
-
-  const newUser = { id: nextId++, name, email };
+  const newUser = { id: Date.now(), name, email };
   profile.push(newUser);
-  fs.writeFileSync("./profiles.json", JSON.stringify(profile, null, 2));
-  res.status(201).json(newUser);
+  res.json({
+    message: "Profile created",
+    data: newUser,
+  });
 });
 
-app.put("/api/update-profile/:id", (req, res) => {
-  const { id } = req.params;
+// UPDATE a profile by ID
+app.put("/api/profile/:id", (req, res) => {
+  const id = parseInt(req.params.id);
   const { name, email } = req.body;
-  const user = profile.find(u => u.id === parseInt(id));
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.name = name;
-  user.email = email;
-  fs.writeFileSync("./profiles.json", JSON.stringify(profile, null, 2));
-  res.json(user);
+  const index = profile.findIndex((user) => user.id === id);
+  if (index !== -1) {
+    profile[index] = { ...profile[index], name, email };
+    res.json({
+      message: "Profile updated",
+      data: profile[index],
+    });
+  } else {
+    res.status(404).json({ message: "Profile not found" });
+  }
 });
 
-app.delete("/api/delete-profile/:id", (req, res) => {
-  const { id } = req.params;
-  const index = profile.findIndex(u => u.id === parseInt(id));
-  if (index === -1) return res.status(404).json({ message: "User not found" });
-
-  const deletedUser = profile.splice(index, 1)[0];
-  fs.writeFileSync("./profiles.json", JSON.stringify(profile, null, 2));
-  res.json(deletedUser);
+// DELETE a profile by ID
+app.delete("/api/profile/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = profile.findIndex((user) => user.id === id);
+  if (index !== -1) {
+    const deletedUser = profile.splice(index, 1)[0];
+    res.json({
+      message: "Profile deleted",
+      data: deletedUser,
+    });
+  } else {
+    res.status(404).json({ message: "Profile not found" });
+  }
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
